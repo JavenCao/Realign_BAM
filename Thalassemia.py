@@ -11,9 +11,9 @@ from BamOPR import *
 import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("-bam", "--bamfile",
-                    help="/Path/to/input Bam file, example:/home/data/input.bam")
+                    help="/Path/to/input_Bam_file.bam, example:/home/data/input.bam")
 parser.add_argument(
-    "-o", "--output", help="/Path/to/output Bam file prefix, example:/home/data/out")
+    "-o", "--output", help="/Path/to/output_Bam_file.bam, example:/home/data/out.bam")
 parser.add_argument("-ref", "--reference", default="hg19",
                     help="reference of human genome assebly, hg19(Default) or GRCh38")
 args = parser.parse_args()
