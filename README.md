@@ -21,4 +21,4 @@ Notes: Python module dependency:
 
     pysam, random, numpy
 
-Also, a typical workflow from rescue Bam to variants calling based on GATK is illustrated here.
+Also, a typical workflow from rescue Bam to variants calling based on GATK is illustrated [here](https://github.com/JavenCao/Thala_Rescue_workflow).
