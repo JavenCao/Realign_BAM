@@ -1,57 +1,24 @@
 # Tailored_thalassaemia
 
-This is a collection of scripts for tailored thalassaemia mutation detection pipeline by next-generation sequencing technology.
+This module(including Thalassemia.py and BamOPR.py) was written to rescue the poorly aligned NGS reads falling into the homologous hemoglobin gene clusters, such as HBA1 and HBA2. In short, we first define a list of poorly aligned reads, then by random assignment of these paired-end reads while keeping reasonable insert size distribution, we rescued the raw Bam file and generated modified Bam file for thalassaemia point mutation/small InDel detection.
 
-A typical working example is illustrated as follows:
+This module can be used to rescue any Bam files, such as WGS-bam, WES-bam, targeted-seq-Bam.
 
-Suppose now we have 3 samples with NGS data(such as whole genome seuqncing data, or targeted sequencing data):
+A quick look of the usage is demonstrated below:
 
-Step1: Follow workflow described in repository Easy_WES, and get the Bam file for each sample in the follwing structure:
+    usage: Thalassemia.py [-h] [-bam BAMFILE] [-o OUTPUT] [-ref REFERENCE]
 
-    |    |/home/data/WESproject/
-    |    | -- Raw_data
-    |    | .... ignore here
-    |    | -- Bam_file
-    |    |   | -- Sample1
-    |    |   |   | -- Easy_WES_XXX_Sample2.pbs
-    |    |   |   | -- good_Sample1.bam   
-    |    |   | -- Sample2
-    |    |   |   | -- Easy_WES_XXX_Sample2.pbs
-    |    |   |   | -- good_Sample2.bam   
-    |    |   | -- Sample3
-    |    |   |   | -- Easy_WES_XXX_Sample3.pbs
-    |    |   |   | -- good_Sample3.bam   
-    |    | -- VCF_file
-    |    | .... ignore here
+    optional arguments:
+      -h, --help            show this help message and exit
+      -bam BAMFILE, --bamfile BAMFILE
+                            /Path/to/input_Bam_file.bam, example:/home/data/input.bam
+      -o OUTPUT, --output OUTPUT
+                            /Path/to/output_Bam_file.bam,example:/home/data/out.bam
+      -ref REFERENCE, --reference REFERENCE
+                            reference of human genome assebly, hg19(Default) or GRCh38
 
-Step2: Create another working fold for rescue process:
+Notes: Python module dependency:
 
-    mkdir /home/data/WESproject/Rescue_Phase
+    pysam, random, numpy
 
-Step3: Within /home/data/WESproject/Rescue_Phase, run the workflow in the repository Thala_Rescue, and you will have the follwing structure:
-
-    |    |/home/data/WESproject/
-    |    | -- Raw_data
-    |    | .... ignore here
-    |    | -- Bam_file
-    |    | .... ignore here
-    |    | -- VCF_file
-    |    | .... ignore here
-    |    | -- Rescue_Phase
-    |    |    | -- Bam_file
-    |    |    |    | -- Sample1
-    |    |    |    |    | -- Thala_Rescue_Sample1.pbs
-    |    |    |    | -- Sample2
-    |    |    |    |    | -- Thala_Rescue_Sample2.pbs
-    |    |    |    | -- Sample3
-    |    |    |    |    | -- Thala_Rescue_Sample3.pbs
-    |    |    | -- VCF_file
-    |    |    |    | -- Sample1
-    |    |    |    |    | -- Thala_Rescue_RunHC_Sample1.pbs
-    |    |    |    | -- Sample2
-    |    |    |    |    | -- Thala_Rescue_RunHC_Sample2.pbs
-    |    |    |    | -- Sample3
-    |    |    |    |    | -- Thala_Rescue_RunHC_Sample3.pbs
-    |    |    |    | -- Joint
-    |    |    | -- Easy_WES_jointGT.pbs
-    |    | -- submit.sh
+Also, a typical workflow from rescue Bam to variants calling based on GATK is illustrated here.
