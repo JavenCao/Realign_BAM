@@ -1,4 +1,4 @@
-# Tailored_thalassaemia
+# Rescue Alignment
 
 This module(including Thalassemia.py and supproting functions - BamOPR.py) was written to rescue the poorly aligned NGS reads falling into the homologous hemoglobin gene clusters, such as HBA1 and HBA2. In short, we first defined a list of poorly aligned reads, then by random assignment of these paired-end reads while keeping reasonable insert size distribution, we rescued the raw Bam file and generated modified Bam file for thalassaemia point mutation/small InDel detection.
 
