@@ -24,7 +24,7 @@ import numpy as np
 from BamOPR import *
 
 
-def EstimateInsertSize(path2bam, chromosome="chr16", start_pos=135000, stop_pos=200000, MAQ=60):
+def EstimateInsertSize(path2bam, chromosome="chr16", start_pos=135000, stop_pos=220000, MAQ=60):
     """
     Description: Use high quality alignments to estimate insert size mean and SD.
     Input:
@@ -43,7 +43,7 @@ def EstimateInsertSize(path2bam, chromosome="chr16", start_pos=135000, stop_pos=
         isize = []
 
         for x in chr_sam:
-            if x.is_paired and x.is_proper_pair and x.is_read1 and x.mapping_quality >= MAQ and abs(x.tlen) < 10000:
+            if x.is_paired and x.is_proper_pair and x.is_read1 and x.mapping_quality >= MAQ and abs(x.tlen) < 2000:
                 isize.append(abs(x.tlen))
 
         Mean_InsertSize = np.mean(isize)
@@ -64,10 +64,10 @@ def RescueSet(path2bam, chromosome, start_pos, stop_pos):
     chr_sam = samfile.fetch(chromosome, start=start_pos, end=stop_pos)
     rescue_set = set()
     for x in chr_sam:
-        if x.mapping_quality >= 0 and x.mapping_quality < 50 and x.is_paired and x.is_proper_pair and x.is_read1:
+        if x.mapping_quality >= 0 and x.mapping_quality < 60 and x.is_paired and x.is_proper_pair and x.is_read1:
             if x.mapping_quality == 0 and x.has_tag("XA"):
                 rescue_set.add(x.query_name)
-            elif x.mapping_quality > 0 and x.mapping_quality < 50 and x.has_tag("XA"):
+            elif x.mapping_quality > 0 and x.mapping_quality < 60 and x.has_tag("XA"):
                 try:
                     NM_tag_line = x.get_tag("NM")
                     NM_NM = int(NM_tag_line)
@@ -81,75 +81,6 @@ def RescueSet(path2bam, chromosome, start_pos, stop_pos):
                     continue
             else:
                 continue
-    return rescue_set
-
-
-def RescueSet_v2(path2bam, chromosome, start_pos, stop_pos, MAQ_L=0, MAQ_H=40):
-    """
-    Description: Return a set of reads name that needs to be rescued, becasue both the PE reads are with mutliple alignment
-    Input:
-         path2bam(string): path to bwa mapping file(.bam)
-    Return:
-         rescue_set: a set of reads name that needs to be rescued, becasue of mutliple alignment
-    Here, we define mulitply reads as (1) 0<MAQ<=30; (2)R1 and R2 both have XA_tag showing the alternative tag on the genome
-    """
-    samfile = pysam.AlignmentFile(path2bam, "rb")
-    chr_sam = samfile.fetch(chromosome, start=start_pos, end=stop_pos)
-    rescue_set = set()
-    PE_flag_dict = {}
-    for x in chr_sam:
-        if x.mapping_quality >= MAQ_L and x.mapping_quality <= MAQ_H and x.is_paired and (not x.is_secondary) and x.has_tag("XA"):
-            if x.query_name in PE_flag_dict.keys():
-                if x.is_read1:
-                    PE_flag_dict[x.query_name] = PE_flag_dict[x.query_name] + "R1"
-                if x.is_read2:
-                    PE_flag_dict[x.query_name] = PE_flag_dict[x.query_name] + "R2"
-            else:
-                if x.is_read1:
-                    PE_flag_dict[x.query_name] = "R1"
-                if x.is_read2:
-                    PE_flag_dict[x.query_name] = "R2"
-        else:
-            continue
-    keys_list = PE_flag_dict.keys()
-    for name in keys_list:
-        if PE_flag_dict[name] == "R1R2" or PE_flag_dict[name] == "R2R1":
-            rescue_set.add(name)
-    return rescue_set
-
-
-def RescueSet_v3(path2bam, chromosome, start_pos, stop_pos, MAQ_L=0, MAQ_H=60):
-    """
-    Description: Return a set of reads name that needs to be rescued, becasue one read is with high quality, the other is low quality
-    Input:
-         path2bam(string): path to bwa mapping file(.bam)
-    Return:
-         rescue_set: a set of reads name that needs to be rescued, becasue of mutliple alignment
-    Here, we define mulitply reads as (1) 0<MAQ<=30; (2)R1 and R2 both have XA_tag showing the alternative tag on the genome
-    """
-    Mean_InsertSize, Std_InsertSize = EstimateInsertSize(path2bam)
-    samfile = pysam.AlignmentFile(path2bam, "rb")
-    chr_sam = samfile.fetch(chromosome, start=start_pos, end=stop_pos)
-    rescue_set = set()
-    PE_flag_dict = {}
-    for x in chr_sam:
-        if x.mapping_quality >= MAQ_L and x.mapping_quality <= MAQ_H and x.is_paired and (not x.is_secondary) and x.tlen >= Mean_InsertSize + 5 * Std_InsertSize:
-            if x.query_name in PE_flag_dict.keys():
-                if x.is_read1:
-                    PE_flag_dict[x.query_name] = PE_flag_dict[x.query_name] + "R1"
-                if x.is_read2:
-                    PE_flag_dict[x.query_name] = PE_flag_dict[x.query_name] + "R2"
-            else:
-                if x.is_read1:
-                    PE_flag_dict[x.query_name] = "R1"
-                if x.is_read2:
-                    PE_flag_dict[x.query_name] = "R2"
-        else:
-            continue
-    keys_list = PE_flag_dict.keys()
-    for name in keys_list:
-        if PE_flag_dict[name] == "R1R2" or PE_flag_dict[name] == "R2R1":
-            rescue_set.add(name)
     return rescue_set
 
 

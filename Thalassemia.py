@@ -43,33 +43,13 @@ if __name__ == "__main__":
 
     Inferred_read_length = InferReadLength(path2bam)
 
-    if InferReadLength <= 100:
-        alpha_rescue_set = RescueSet_v2(
-            path2bam, "chr16", chr16_pos1, chr16_pos2)
-        alpha_rescue_set_3 = RescueSet_v3(
-            path2bam, "chr16", chr16_pos1, chr16_pos2)
-        alpha_1_peak_rescue_set = RescueSet_v2(
-            path2bam, "chr16", alpha_1_peak_pos1, alpha_1_peak_pos2, MAQ_L=30, MAQ_H=60)
+    alpha_rescue_set_2020 = RescueSet(
+        path2bam, "chr16", chr16_pos1, chr16_pos2)
 
-        beta_rescue_set = RescueSet_v2(
-            path2bam, "chr11", chr11_pos1, chr11_pos2)
-        beta_rescue_set_3 = RescueSet_v3(
-            path2bam, "chr11", chr11_pos1, chr11_pos2)
+    beta_rescue_set_2020 = RescueSet(
+        path2bam, "chr11", chr11_pos1, chr11_pos2)
 
-        hemoglobin_rescue_set = alpha_rescue_set | beta_rescue_set | alpha_rescue_set_3 | beta_rescue_set_3 | alpha_1_peak_rescue_set
-
-    elif InferReadLength > 100:
-        alpha_rescue_set = RescueSet_v2(
-            path2bam, "chr16", chr16_pos1, chr16_pos2)
-        alpha_rescue_set_3 = RescueSet_v3(
-            path2bam, "chr16", chr16_pos1, chr16_pos2)
-
-        beta_rescue_set = RescueSet_v2(
-            path2bam, "chr11", chr11_pos1, chr11_pos2)
-        beta_rescue_set_3 = RescueSet_v3(
-            path2bam, "chr11", chr11_pos1, chr11_pos2)
-
-        hemoglobin_rescue_set = alpha_rescue_set | beta_rescue_set | alpha_rescue_set_3 | beta_rescue_set_3
+    hemoglobin_rescue_set = alpha_rescue_set_2020 | beta_rescue_set_2020
 
     probability = 0.5
     RescueMARReads(path2bam, path2outputfile,
