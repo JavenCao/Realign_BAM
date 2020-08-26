@@ -121,7 +121,7 @@ def RescueMARReads(path2bam, path2newbam, probability, rescue_set):
                 XA_tag_line = x.get_tag("XA")
                 XA_chr = XA_tag_line.split(";")[0].split(",")[0]
                 XA_chr_id = samfile.get_tid(XA_chr)
-                XA_pos = abs(int(XA_tag_line.split(";")[0].split(",")[1]))
+                XA_pos = abs(int(XA_tag_line.split(";")[0].split(",")[1])) - 1
                 XA_cigar = XA_tag_line.split(";")[0].split(",")[2]
                 XA_NM = int(XA_tag_line.split(";")[0].split(",")[3])
 
