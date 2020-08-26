@@ -1,3 +1,4 @@
+# update on August 26, 2020 by CAO Yujie(boxyjcao@gmail.com)
 # update on July 8, 2019
 # This file includes all supporting funcions
 # June 1, 2018
@@ -24,9 +25,9 @@ import numpy as np
 from BamOPR import *
 
 
-def EstimateInsertSize(path2bam, chromosome="chr16", start_pos=135000, stop_pos=220000, MAQ=60):
+def EstimateInsertSize(path2bam, chromosome="chr16", start_pos=135000, stop_pos=230000, MAQ=60):
     """
-    Description: Use high quality alignments to estimate insert size mean and SD.
+    Description: Use high quality alignments to estimate insert size mean and SD for the NGS library
     Input:
          path2bam: path to alignment file(.bam)
          chromosome(string), start_pos(int),stop_pos(int): explicitly give a region to use, default is hg19 chr16:135000-200000
@@ -43,7 +44,7 @@ def EstimateInsertSize(path2bam, chromosome="chr16", start_pos=135000, stop_pos=
         isize = []
 
         for x in chr_sam:
-            if x.is_paired and x.is_proper_pair and x.is_read1 and x.mapping_quality >= MAQ and abs(x.tlen) < 2000:
+            if x.is_paired and x.is_proper_pair and x.is_read1 and x.mapping_quality >= MAQ and abs(x.tlen) < 1000:
                 isize.append(abs(x.tlen))
 
         Mean_InsertSize = np.mean(isize)
@@ -58,16 +59,16 @@ def RescueSet(path2bam, chromosome, start_pos, stop_pos):
          path2bam(string): path to bwa mapping file(.bam)
     Return:
          rescue_set: a set of reads name that needs to be rescued, becasue of mutliple alignment
-    Here, we define mulitply reads as (1)MAQ=0; (2) 0<MAQ<30 and XA tag and NM <= 3
+    Here, we define mulitply reads as (1)MAQ=0; (2) 0<MAQ<30 and mismatch difference <= 3
     """
     samfile = pysam.AlignmentFile(path2bam, "rb")
     chr_sam = samfile.fetch(chromosome, start=start_pos, end=stop_pos)
     rescue_set = set()
     for x in chr_sam:
-        if x.mapping_quality >= 0 and x.mapping_quality < 60 and x.is_paired and x.is_proper_pair and x.is_read1:
+        if x.mapping_quality >= 0 and x.mapping_quality <= 30 and x.is_paired and x.is_proper_pair and x.is_read1:
             if x.mapping_quality == 0 and x.has_tag("XA"):
                 rescue_set.add(x.query_name)
-            elif x.mapping_quality > 0 and x.mapping_quality < 60 and x.has_tag("XA"):
+            elif x.mapping_quality > 0 and x.mapping_quality <= 30 and x.has_tag("XA"):
                 try:
                     NM_tag_line = x.get_tag("NM")
                     NM_NM = int(NM_tag_line)
@@ -111,6 +112,7 @@ def RescueMARReads(path2bam, path2newbam, probability, rescue_set):
     for x in chr_sam:
         if x.query_name in rescue_set and x.is_read1 and x.is_paired and (not x.is_secondary):
             try:
+                # for hemoglobin region, usually ++, --
                 if x.is_reverse:
                     strand_flag = "-"
                 else:
@@ -119,8 +121,7 @@ def RescueMARReads(path2bam, path2newbam, probability, rescue_set):
                 XA_tag_line = x.get_tag("XA")
                 XA_chr = XA_tag_line.split(";")[0].split(",")[0]
                 XA_chr_id = samfile.get_tid(XA_chr)
-                # for hemoglobin region, ++, --
-                XA_pos = abs(int(XA_tag_line.split(";")[0].split(",")[1])) - 1
+                XA_pos = abs(int(XA_tag_line.split(";")[0].split(",")[1]))
                 XA_cigar = XA_tag_line.split(";")[0].split(",")[2]
                 XA_NM = int(XA_tag_line.split(";")[0].split(",")[3])
 
@@ -179,8 +180,8 @@ def RescueMARReads(path2bam, path2newbam, probability, rescue_set):
 
                 R1_pos = int(R1_pos_dict[x.query_name].split(
                     "_")[1])  # chr16_215397
-                R2_lower = R1_pos + Mean_InsertSize - x.query_length - 10 * Std_InsertSize
-                R2_upper = R1_pos + Mean_InsertSize - x.query_length + 10 * Std_InsertSize
+                R2_lower = R1_pos + Mean_InsertSize - x.query_length - 5 * Std_InsertSize
+                R2_upper = R1_pos + Mean_InsertSize - x.query_length + 5 * Std_InsertSize
 
                 if x.pos >= R2_lower and x.pos <= R2_upper and (XA_pos < R2_lower or XA_pos > R2_upper):
                     x.mapping_quality = 60
@@ -242,7 +243,8 @@ def RescueMARReads(path2bam, path2newbam, probability, rescue_set):
     pysam.index(sort_R2)
 # Round 3---------------------next, update R2 information of rescued R1, and create the final rescued bam--------------
     samfile = pysam.AlignmentFile(sort_R2, "rb")
-    fout = pysam.AlignmentFile(path2newbam, "wb", template=samfile)
+    R1_R2_mid_file = sort_R2 + "_R1.bam"
+    fout = pysam.AlignmentFile(R1_R2_mid_file, "wb", template=samfile)
     chr_sam_round3 = samfile.fetch()
     for x in chr_sam_round3:
         if x.query_name in rescue_set and x.is_read1 and x.is_paired and (not x.is_secondary):
@@ -263,8 +265,8 @@ def RescueMARReads(path2bam, path2newbam, probability, rescue_set):
     samfile.close()
     fout.close()
     #sort and index
-    sort_rescue_bam = path2newbam + "_sort.bam"
-    pysam.sort("-o", sort_rescue_bam, path2newbam)
+    sort_rescue_bam = path2newbam
+    pysam.sort("-o", sort_rescue_bam, R1_R2_mid_file)
     pysam.index(sort_rescue_bam)
     return 1
 
