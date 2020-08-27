@@ -22,6 +22,7 @@ def InferReadLength()
 import pysam
 import random
 import numpy as np
+import os
 from BamOPR import *
 
 
@@ -268,6 +269,14 @@ def RescueMARReads(path2bam, path2newbam, probability, rescue_set):
     sort_rescue_bam = path2newbam
     pysam.sort("-o", sort_rescue_bam, R1_R2_mid_file)
     pysam.index(sort_rescue_bam)
+# delete all the mid files
+    os.remove(R1_mid_outputsamfile)
+    os.remove(sort_R1)
+    os.remove(sort_R1 + ".bai")
+    os.remove(R2_mid_outputsamfile)
+    os.remove(sort_R2)
+    os.remove(sort_R2 + ".bai")
+    os.remove(R1_R2_mid_file)
     return 1
 
 
