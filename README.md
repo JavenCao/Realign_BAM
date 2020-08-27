@@ -24,6 +24,7 @@ Notes: Python module dependency:
     pysam, random, numpy
 
 Example:
+
     python Thalassemia.py -h
     python Thalassemia.py -bam /home/data/input.bam -o /home/result/output.bam -ref "hg19"
 ## (A) Point mutation/small InDel
